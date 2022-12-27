@@ -4,6 +4,7 @@ from spritesheets import Spritesheet
 from random import randint
 import _random
 import random
+from button import Button
 from pygame.locals import (
     K_UP,
     K_DOWN,
@@ -15,8 +16,45 @@ from pygame.locals import (
     K_s,
     QUIT,
 )
+fontt=pygame.font.SysFont(r"new\font\CANDY___.otf",90)
 
 count=0
+SCREEN_WIDTH=800
+SCREEN_HEIGHT=600
+
+size=SCREEN_WIDTH,SCREEN_HEIGHT
+
+pygame.init()
+
+time=pygame.time.Clock()
+
+fps=30
+screen=pygame.display.set_mode(size)
+pygame.display.set_caption("Breakout")
+
+my_spritesheet=Spritesheet(r"new\img\Sprite Sheet\Breakout_Tile_Free.png")
+
+blue=my_spritesheet.get_sprite(772,390,384,128)
+blue=pygame.transform.scale(blue,(80,30))
+
+red=my_spritesheet.get_sprite(772 ,260 ,384 ,128)
+red=pygame.transform.scale(red,(80,30))
+
+green=my_spritesheet.get_sprite(0 ,130,384,128)
+green=pygame.transform.scale(green,(80,30))
+
+blue_1=my_spritesheet.get_sprite(0 ,0 ,384,128)
+blue_1=pygame.transform.scale(blue_1,(80,30))
+
+red_1=my_spritesheet.get_sprite(772 ,130 ,384 ,128)
+red_1=pygame.transform.scale(red_1,(80,30))
+
+green_1=my_spritesheet.get_sprite(0 ,260 ,384,128)
+green_1=pygame.transform.scale(green_1,(80,30))
+
+block_color=[red,blue,green]
+block_color1=[red_1,blue_1,green_1]
+
 
 BALL_RECT= int(10*2**0.5)
 def collision(dx,dy,ball,rect):
@@ -82,95 +120,101 @@ class Ball(pygame.sprite.Sprite):
         self.dx=1
         self.dy=-1
     def update(self):
-        ball.rect.x+=5*self.dx
-        ball.rect.y+=5*self.dy
-
-SCREEN_WIDTH=800
-SCREEN_HEIGHT=600
-
-size=SCREEN_WIDTH,SCREEN_HEIGHT
-
-pygame.init()
-
-time=pygame.time.Clock()
-
-fps=30
-screen=pygame.display.set_mode(size)
-pygame.display.set_caption("Breakout")
-
-my_spritesheet=Spritesheet(r"new\img\Sprite Sheet\Breakout_Tile_Free.png")
-
-paddle_image=my_spritesheet.get_sprite(1158,396,243,64)
-paddle_image=pygame.transform.scale(paddle_image,(120,10))
-paddle=Paddle()
-ball_image=my_spritesheet.get_sprite(1403,652,64,64)
-
-ball_image=pygame.transform.scale(ball_image,(BALL_RECT,BALL_RECT))
-blue=my_spritesheet.get_sprite(772,390,384,128)
-blue=pygame.transform.scale(blue,(80,30))
-
-red=my_spritesheet.get_sprite(772 ,260 ,384 ,128)
-red=pygame.transform.scale(red,(80,30))
-
-green=my_spritesheet.get_sprite(0 ,130,384,128)
-green=pygame.transform.scale(green,(80,30))
-
-blue_1=my_spritesheet.get_sprite(0 ,0 ,384,128)
-blue_1=pygame.transform.scale(blue_1,(80,30))
-
-red_1=my_spritesheet.get_sprite(772 ,130 ,384 ,128)
-red_1=pygame.transform.scale(red_1,(80,30))
-
-green_1=my_spritesheet.get_sprite(0 ,260 ,384,128)
-green_1=pygame.transform.scale(green_1,(80,30))
-
-block_color=[red,blue,green]
-block_color1=[red_1,blue_1,green_1]
-ball=Ball()
-block_list=[Block(i,j) for i in range(9) for j in range(4)]
+        self.rect.x+=5*self.dx
+        self.rect.y+=5*self.dy
 
 
 
-while True:
-    screen.fill("black")
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            pygame.quit()
-            sys.exit()
+def play():
+    my_spritesheet=Spritesheet(r"new\img\Sprite Sheet\Breakout_Tile_Free.png")
+
+    paddle_image=my_spritesheet.get_sprite(1158,396,243,64)
+    paddle_image=pygame.transform.scale(paddle_image,(120,10))
+    paddle=Paddle()
+    ball_image=my_spritesheet.get_sprite(1403,652,64,64)
+
+    ball_image=pygame.transform.scale(ball_image,(BALL_RECT,BALL_RECT))
     
-    key=pygame.key.get_pressed()
-    paddle.update(key)
-    ball.update()
 
-    if ball.rect.centerx>800-BALL_RECT or ball.rect.centerx<BALL_RECT:
-        ball.dx*=-1
-    if ball.rect.y<BALL_RECT and ball.dy<0:
-        ball.dy*=-1
-
-    if ball.rect.colliderect(paddle.rect) and ball.dy>0:
-        ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,paddle.rect)
-    screen.blit(paddle_image,paddle.rect)
-    screen.blit(ball_image,ball.rect)  
     
-    for b in block_list:
-        #b=block_rect[i]
-        screen.blit(b.surf,b.rect)
-   # [screen.blit(bb[1],b[1]) for b in enumerate(block_rect) for bb in enumerate(block_list)]
+    ball=Ball()
+    block_list=[Block(i,j) for i in range(9) for j in range(4)]
 
-    hit_index=ball.rect.collidelist(block_list)
-    if hit_index!=-1:
+
+
+    while True:
+        screen.fill("black")
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
         
-        hit_block=block_list[hit_index]
-        hit_rect=hit_block.rect
-        hit=hit_block.hit
-        if hit==0:
-            hit_block.update()
+        key=pygame.key.get_pressed()
+        paddle.update(key)
+        ball.update()
 
-        else:
-            block_list.pop(hit_index)    
+        if ball.rect.centerx>800-BALL_RECT or ball.rect.centerx<BALL_RECT:
+            ball.dx*=-1
+        if ball.rect.y<BALL_RECT and ball.dy<0:
+            ball.dy*=-1
 
-        ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,hit_rect)
-        fps+=2
+        if ball.rect.colliderect(paddle.rect) and ball.dy>0:
+            ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,paddle.rect)
+        screen.blit(paddle_image,paddle.rect)
+        screen.blit(ball_image,ball.rect)  
+        
+        for b in block_list:
+            #b=block_rect[i]
+            screen.blit(b.surf,b.rect)
+    # [screen.blit(bb[1],b[1]) for b in enumerate(block_rect) for bb in enumerate(block_list)]
 
-    pygame.display.flip()
-    time.tick(fps)
+        hit_index=ball.rect.collidelist(block_list)
+        if hit_index!=-1:
+            
+            hit_block=block_list[hit_index]
+            hit_rect=hit_block.rect
+            hit=hit_block.hit
+            if hit==0:
+                hit_block.update()
+
+            else:
+                block_list.pop(hit_index)    
+
+            ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,hit_rect)
+            global fps
+            fps+=2
+
+        pygame.display.flip()
+        time.tick(fps)
+
+def menu():
+
+    screen.fill("black")
+    running =True
+
+    while running:
+
+        
+        MENU_MOUSE_POS=pygame.mouse.get_pos()
+        menu_text=fontt.render("MAIN MENU",True,"white")
+        menu_rect=menu_text.get_rect(center=(400,150))
+        screen.blit(menu_text,menu_rect)      
+        PLAY_BUTTON=Button(image=None,pos=(400,300),text_input="PLAY",font=fontt,base_colour="white",hovering_colour="red")
+        QUIT_BUTTON=Button(image=None,pos=(400,400),text_input="QUIT",font=fontt,base_colour="white",hovering_colour="red")
+        for button in PLAY_BUTTON,QUIT_BUTTON:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(screen)  
+
+
+        for event in pygame.event.get():
+            if event.type==pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play()    
+        pygame.display.flip()
+        global fps
+        time.tick(fps)
+menu()
