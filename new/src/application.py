@@ -23,11 +23,15 @@ SCREEN_WIDTH=800
 SCREEN_HEIGHT=600
 
 size=SCREEN_WIDTH,SCREEN_HEIGHT
-
+pygame.mixer.init()
 pygame.init()
 
 time=pygame.time.Clock()
-
+background_sound=pygame.mixer.Sound(r"new/sounds/background.mp3")
+#ppaddle_color=pygame.mixer.Sound(r"new/sounds/paddle.m4a")
+#brick_sound=pygame.mixer.Sound(r"new/sounds/brick.m4a")
+#wall_sound=pygame.mixer.Sound(r"new/sounds/wall.m4a")
+hit_sound=pygame.mixer.Sound(r"new/sounds/hit.mp3")
 fps=30
 screen=pygame.display.set_mode(size)
 pygame.display.set_caption("Breakout")
@@ -55,6 +59,18 @@ green_1=pygame.transform.scale(green_1,(80,30))
 block_color=[red,blue,green]
 block_color1=[red_1,blue_1,green_1]
 
+sound_on=True
+
+def sound_check():
+    global sound_on
+    if sound_on==True:
+        sound=pygame.image.load(r"new/img/sound.png")
+        sound=pygame.transform.scale(sound,(30,30))
+    if sound_on== False:
+        sound=pygame.image.load(r"new/img/mute.png")
+        sound=pygame.transform.scale(sound,(30,30))
+    #sound_rect=sound.get_rect(center=(600,400))
+    return sound
 
 BALL_RECT= int(10*2**0.5)
 def collision(dx,dy,ball,rect):
@@ -124,10 +140,27 @@ class Ball(pygame.sprite.Sprite):
         self.rect.y+=5*self.dy
 
 
+def win_check(win):
+    if win==True:
+        screen.fill("black")
+        text=fontt.render("YOU WIN !",True,"white")
+        screen.blit(text,(300,300))
+        
+        
+    else:
+        screen.fill("black")
+        text=fontt.render("YOU LOSE !",True,"white")
+        screen.blit(text,(300,300))
+        
+
+    pygame.display.flip()
+    pygame.time.wait(2000)
+    menu()    
 
 def play():
+    global ppaddle_color,wall_sound,brick_sound,hit_sound
     my_spritesheet=Spritesheet(r"new\img\Sprite Sheet\Breakout_Tile_Free.png")
-
+    score=0
     paddle_image=my_spritesheet.get_sprite(1158,396,243,64)
     paddle_image=pygame.transform.scale(paddle_image,(120,10))
     paddle=Paddle()
@@ -143,6 +176,7 @@ def play():
 
 
     while True:
+        
         screen.fill("black")
         for event in pygame.event.get():
             if event.type==pygame.QUIT:
@@ -155,14 +189,18 @@ def play():
 
         if ball.rect.centerx>800-BALL_RECT or ball.rect.centerx<BALL_RECT:
             ball.dx*=-1
+            hit_sound.play()
         if ball.rect.y<BALL_RECT and ball.dy<0:
             ball.dy*=-1
+            hit_sound.play()
 
         if ball.rect.colliderect(paddle.rect) and ball.dy>0:
             ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,paddle.rect)
+            hit_sound.play()
         screen.blit(paddle_image,paddle.rect)
         screen.blit(ball_image,ball.rect)  
-        
+        if ball.rect.centery>600-BALL_RECT:
+            win_check(False)
         for b in block_list:
             #b=block_rect[i]
             screen.blit(b.surf,b.rect)
@@ -170,7 +208,7 @@ def play():
 
         hit_index=ball.rect.collidelist(block_list)
         if hit_index!=-1:
-            
+            hit_sound.play()
             hit_block=block_list[hit_index]
             hit_rect=hit_block.rect
             hit=hit_block.hit
@@ -178,30 +216,39 @@ def play():
                 hit_block.update()
 
             else:
-                block_list.pop(hit_index)    
+                block_list.pop(hit_index)
+                score+=1    
 
             ball.dx,ball.dy=collision(ball.dx,ball.dy,ball.rect,hit_rect)
+            if score==36:
+                win_check(True)
             global fps
             fps+=2
-
+        font1=pygame.font.SysFont(r"new\font\CANDY___.otf",30)    
+        textt=font1.render("score={} ".format(score),True,"white")
+        screen.blit(textt,(700,550))
         pygame.display.flip()
         time.tick(fps)
 
 def menu():
-
+    global background_sound
+    global sound_on
     screen.fill("black")
     running =True
-
+    if sound_on:
+        background_sound.play(loops=-1)
     while running:
-
+       
         
         MENU_MOUSE_POS=pygame.mouse.get_pos()
         menu_text=fontt.render("MAIN MENU",True,"white")
         menu_rect=menu_text.get_rect(center=(400,150))
-        screen.blit(menu_text,menu_rect)      
+        screen.blit(menu_text,menu_rect)    
+        
         PLAY_BUTTON=Button(image=None,pos=(400,300),text_input="PLAY",font=fontt,base_colour="white",hovering_colour="red")
         QUIT_BUTTON=Button(image=None,pos=(400,400),text_input="QUIT",font=fontt,base_colour="white",hovering_colour="red")
-        for button in PLAY_BUTTON,QUIT_BUTTON:
+        SOUND_BUTTON=Button(image=sound_check(),pos=(700,500),text_input="",font=fontt,base_colour="white",hovering_colour="white")
+        for button in PLAY_BUTTON,QUIT_BUTTON,SOUND_BUTTON:
             button.changeColor(MENU_MOUSE_POS)
             button.update(screen)  
 
@@ -213,7 +260,23 @@ def menu():
 
             if event.type==pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()    
+                    background_sound.stop()
+                    play()
+                if SOUND_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    black_image=pygame.image.load(r"new/img/black.png")
+                    black_image=pygame.transform.scale(black_image,(30,30))
+                    screen.blit(black_image,SOUND_BUTTON.rect)
+                    if sound_on:
+                        sound_on=False
+                        background_sound.stop()
+                    else: 
+                        sound_on=True    
+                        background_sound.play()
+
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+                    sys.exit()      
+
         pygame.display.flip()
         global fps
         time.tick(fps)
