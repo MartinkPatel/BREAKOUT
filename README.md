@@ -1,6 +1,9 @@
 # BREAKOUT
 Simple Breakout Game!
 
+SPRITESHEET USED CAN BE FOUND-
+https://opengameart.org/content/breakout-brick-breaker-tile-set-free
+
 Instruction For Installation:
 
 Install Pygame: In CMD - pip install pygame
